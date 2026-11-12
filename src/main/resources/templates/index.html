@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Dashboard')}"></head>
+<body>
+<header th:replace="~{fragments :: nav('home')}"></header>
+<main>
+    <section class="hero">
+        <div class="eyebrow">Welcome to the reading room</div>
+        <h1>A collection worth <em>curating.</em></h1>
+        <p th:text="'Overseeing ' + ${stats.titles} + ' titles across ' + ${genres.size()} + ' genres, with '
+                    + ${stats.members} + ' distinguished members.'">Overview</p>
+        <div class="btn-row">
+            <a class="btn primary" th:href="@{/loans}">Issue or return a book</a>
+            <a class="btn" th:href="@{/books/new}">Add to collection</a>
+            <a class="btn" th:href="@{/members/new}">Register member</a>
+        </div>
+    </section>
+
+    <section class="stats">
+        <div class="stat"><span th:text="${stats.titles}">0</span><label>Titles</label></div>
+        <div class="stat good"><span th:text="${stats.availableCopies}">0</span><label th:text="'of ' + ${stats.totalCopies} + ' copies on shelf'">Copies</label></div>
+        <div class="stat"><span th:text="${stats.members}">0</span><label>Members</label></div>
+        <div class="stat"><span th:text="${stats.activeLoans}">0</span><label>On loan</label></div>
+        <div class="stat" th:classappend="${stats.overdueLoans > 0} ? 'warn'"><span th:text="${stats.overdueLoans}">0</span><label>Overdue</label></div>
+    </section>
+
+    <div class="page-head" style="margin: 44px 0 20px">
+        <div><div class="eyebrow">New acquisitions</div><h2 style="margin:6px 0 0">Recently added</h2></div>
+        <a class="btn small" th:href="@{/books}">View the full collection →</a>
+    </div>
+    <div class="book-grid">
+        <a class="book-tile" th:each="book : ${recent}" th:href="@{/books/{id}(id=${book.id})}">
+            <div th:replace="~{fragments :: cover(${book}, '')}"></div>
+            <div class="meta">
+                <strong th:text="${book.title}"></strong>
+                <span th:text="${book.author}"></span>
+            </div>
+        </a>
+    </div>
+
+    <h2>Overdue loans</h2>
+    <div class="empty" th:if="${overdue.isEmpty()}">Every volume is accounted for. ✦</div>
+    <div class="table-wrap" th:unless="${overdue.isEmpty()}">
+        <table>
+            <thead><tr><th>Book</th><th>Member</th><th>Due</th><th>Late by</th><th></th></tr></thead>
+            <tbody>
+            <tr th:each="loan : ${overdue}">
+                <td><a class="title-cell" th:href="@{/books/{id}(id=${loan.book.id})}" th:text="${loan.book.title}"></a></td>
+                <td><a th:href="@{/members/{id}(id=${loan.member.id})}" th:text="${loan.member.name}"></a></td>
+                <td th:text="${#temporals.format(loan.dueDate, 'd MMM yyyy')}"></td>
+                <td class="danger" th:text="${-loan.daysLeft} + ' days'"></td>
+                <td><a class="btn small" th:href="@{/loans/{id}(id=${loan.id})}">Details</a></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+<footer th:replace="~{fragments :: footer}"></footer>
+</body>
+</html>

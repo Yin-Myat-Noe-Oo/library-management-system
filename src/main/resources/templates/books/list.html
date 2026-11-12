@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Collection')}"></head>
+<body>
+<header th:replace="~{fragments :: nav('books')}"></header>
+<main>
+    <div class="page-head">
+        <div>
+            <div class="eyebrow">The collection</div>
+            <h1>Books</h1>
+            <p class="muted" th:text="${books.size()} + (${books.size() == 1} ? ' title' : ' titles')
+                + (${genre} ? ' in ' + ${genre} : '') + (${q} ? ' matching “' + ${q} + '”' : '')"></p>
+        </div>
+        <a class="btn primary" th:href="@{/books/new}">+ Add a book</a>
+    </div>
+    <div th:replace="~{fragments :: flash}"></div>
+
+    <form class="toolbar" th:action="@{/books}" method="get">
+        <input type="search" name="q" th:value="${q}" placeholder="Search by title, author, ISBN or genre…">
+        <input type="hidden" name="genre" th:value="${genre}" th:if="${genre}">
+        <button class="btn" type="submit">Search</button>
+        <a class="btn" th:if="${q != null or genre != null}" th:href="@{/books}">Clear</a>
+    </form>
+
+    <nav class="chips">
+        <a th:href="@{/books(q=${q})}" th:classappend="${genre == null} ? 'active'">All genres</a>
+        <a th:each="g : ${genres}" th:href="@{/books(genre=${g},q=${q})}"
+           th:classappend="${g == genre} ? 'active'" th:text="${g}"></a>
+    </nav>
+
+    <div class="empty" th:if="${books.isEmpty()}">No volumes match your search.</div>
+    <div class="book-grid">
+        <a class="book-tile" th:each="book : ${books}" th:href="@{/books/{id}(id=${book.id})}">
+            <div th:replace="~{fragments :: cover(${book}, '')}"></div>
+            <div class="meta">
+                <strong th:text="${book.title}"></strong>
+                <span th:text="${book.author} + (${book.publishedYear} ? ' · ' + ${book.publishedYear} : '')"></span>
+                <div class="avail" th:classappend="${book.available} ? '' : 'none'"
+                     th:text="${book.available} ? ${book.availableCopies} + ' of ' + ${book.totalCopies} + ' available' : 'All copies on loan'"></div>
+            </div>
+        </a>
+    </div>
+</main>
+<footer th:replace="~{fragments :: footer}"></footer>
+</body>
+</html>

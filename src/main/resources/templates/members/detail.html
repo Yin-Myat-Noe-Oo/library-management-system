@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head(${member.name})}"></head>
+<body>
+<header th:replace="~{fragments :: nav('members')}"></header>
+<main>
+    <div class="breadcrumb"><a th:href="@{/members}">Members</a> / <span th:text="${member.name}"></span></div>
+    <div th:replace="~{fragments :: flash}"></div>
+
+    <section class="card gold">
+        <div class="profile">
+            <div class="avatar" th:text="${#strings.substring(member.name, 0, 1)}">A</div>
+            <div style="flex:1; min-width:220px">
+                <div class="eyebrow" th:text="${member.active} ? 'Active member' : 'Inactive member'"></div>
+                <h1 style="margin:4px 0" th:text="${member.name}">Member</h1>
+                <div class="muted">
+                    <span th:text="${member.email}"></span>
+                    <span th:if="${member.phone}" th:text="' · ' + ${member.phone}"></span>
+                    · member since <span th:text="${#temporals.format(member.memberSince, 'd MMMM yyyy')}"></span>
+                </div>
+            </div>
+            <div class="btn-row">
+                <a class="btn" th:href="@{/members/{id}/edit(id=${member.id})}">Edit</a>
+                <form th:action="@{/members/{id}/delete(id=${member.id})}" method="post"
+                      onsubmit="return confirm('Remove this member?')">
+                    <button class="btn ghost-danger" type="submit">Remove</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <section class="stats" style="margin-top:18px">
+        <div class="stat"><span th:text="${loans.size()}">0</span><label>Total loans</label></div>
+        <div class="stat"><span th:text="${activeCount}">0</span><label>Currently borrowed</label></div>
+        <div class="stat" th:classappend="${overdueCount > 0} ? 'warn'"><span th:text="${overdueCount}">0</span><label>Overdue</label></div>
+        <div class="stat"><span th:text="'$' + ${totalFines}">0</span><label>Fines paid</label></div>
+    </section>
+
+    <form class="card" style="margin-top:18px" th:action="@{/loans/borrow}" method="post" th:if="${member.active}">
+        <h3>Lend a book to <span th:text="${member.name}"></span></h3>
+        <input type="hidden" name="memberId" th:value="${member.id}">
+        <input type="hidden" name="back" th:value="'/members/' + ${member.id}">
+        <div class="grid3" style="grid-template-columns: 1fr auto">
+            <label style="margin:0">Book
+                <select name="bookId" required>
+                    <option value="">Choose a book…</option>
+                    <option th:each="b : ${books}" th:value="${b.id}" th:disabled="${!b.available}"
+                            th:text="${b.title} + ' — ' + ${b.author} + ' (' + ${b.availableCopies} + ' available)'"></option>
+                </select>
+            </label>
+            <button class="btn primary" type="submit" style="margin:0">Issue book</button>
+        </div>
+    </form>
+
+    <h2>Reading history</h2>
+    <div class="empty" th:if="${loans.isEmpty()}">No loans yet.</div>
+    <div class="table-wrap" th:unless="${loans.isEmpty()}">
+        <table>
+            <thead><tr><th>Book</th><th>Borrowed</th><th>Due</th><th>Returned</th><th>Fine</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+            <tr th:each="loan : ${loans}">
+                <td><a class="title-cell" th:href="@{/books/{id}(id=${loan.book.id})}" th:text="${loan.book.title}"></a></td>
+                <td th:text="${#temporals.format(loan.borrowDate, 'd MMM yyyy')}"></td>
+                <td th:text="${#temporals.format(loan.dueDate, 'd MMM yyyy')}"></td>
+                <td th:text="${loan.returnDate} ? ${#temporals.format(loan.returnDate, 'd MMM yyyy')} : '—'"></td>
+                <td th:text="'$' + ${loan.fine}"></td>
+                <td><span th:replace="~{fragments :: status(${loan})}"></span></td>
+                <td class="btn-row" style="flex-wrap:nowrap">
+                    <form th:unless="${loan.returned}" th:action="@{/loans/{id}/return(id=${loan.id})}" method="post">
+                        <input type="hidden" name="back" th:value="'/members/' + ${member.id}">
+                        <button class="btn small primary" type="submit">Return</button>
+                    </form>
+                    <a class="btn small" th:href="@{/loans/{id}(id=${loan.id})}">Details</a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+<footer th:replace="~{fragments :: footer}"></footer>
+</body>
+</html>

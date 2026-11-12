@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Loan #' + ${loan.id})}"></head>
+<body>
+<header th:replace="~{fragments :: nav('loans')}"></header>
+<main>
+    <div class="breadcrumb"><a th:href="@{/loans}">Loans</a> / <span th:text="'Loan #' + ${loan.id}"></span></div>
+    <div th:replace="~{fragments :: flash}"></div>
+
+    <section class="card gold ticket">
+        <a th:href="@{/books/{id}(id=${loan.book.id})}">
+            <div th:replace="~{fragments :: cover(${loan.book}, '')}"></div>
+        </a>
+        <div>
+            <div class="eyebrow" th:text="'Loan #' + ${loan.id}"></div>
+            <h1 style="margin:6px 0">
+                <a style="color:inherit" th:href="@{/books/{id}(id=${loan.book.id})}" th:text="${loan.book.title}"></a>
+            </h1>
+            <p class="byline" style="font-family:var(--serif);font-style:italic;color:var(--gold-light);margin:0 0 16px"
+               th:text="'by ' + ${loan.book.author}"></p>
+
+            <div class="btn-row" style="margin-bottom:6px">
+                <span th:replace="~{fragments :: status(${loan})}"></span>
+                <span class="muted small" th:if="${loan.status.name() == 'ACTIVE'}" th:text="${loan.daysLeft} + ' days remaining'"></span>
+                <span class="danger small" th:if="${loan.overdue}" th:text="${-loan.daysLeft} + ' days overdue'"></span>
+            </div>
+
+            <dl class="facts">
+                <div><dt>Borrower</dt><dd><a th:href="@{/members/{id}(id=${loan.member.id})}" th:text="${loan.member.name}"></a></dd></div>
+                <div><dt>Borrowed</dt><dd th:text="${#temporals.format(loan.borrowDate, 'd MMM yyyy')}"></dd></div>
+                <div><dt>Due</dt><dd th:text="${#temporals.format(loan.dueDate, 'd MMM yyyy')}"></dd></div>
+                <div><dt>Fine</dt><dd th:text="'$' + ${loan.fine}"></dd></div>
+            </dl>
+
+            <ul class="timeline">
+                <li class="done">
+                    <strong>Issued</strong>
+                    <span class="muted small" th:text="${#temporals.format(loan.borrowDate, 'EEEE, d MMMM yyyy')} + ' to ' + ${loan.member.name}"></span>
+                </li>
+                <li th:classappend="${loan.overdue} ? 'late' : (${loan.returned} ? 'done' : '')">
+                    <strong>Due back</strong>
+                    <span class="muted small" th:text="${#temporals.format(loan.dueDate, 'EEEE, d MMMM yyyy')}"></span>
+                </li>
+                <li th:classappend="${loan.returned} ? 'done'">
+                    <strong>Returned</strong>
+                    <span class="muted small" th:text="${loan.returned}
+                        ? ${#temporals.format(loan.returnDate, 'EEEE, d MMMM yyyy')} + (${loan.fine.signum() > 0} ? ' — fine $' + ${loan.fine} : ' — on time')
+                        : 'Awaiting return'"></span>
+                </li>
+            </ul>
+
+            <form th:unless="${loan.returned}" th:action="@{/loans/{id}/return(id=${loan.id})}" method="post">
+                <input type="hidden" name="back" th:value="'/loans/' + ${loan.id}">
+                <button class="btn primary" type="submit">Mark as returned</button>
+            </form>
+        </div>
+    </section>
+</main>
+<footer th:replace="~{fragments :: footer}"></footer>
+</body>
+</html>

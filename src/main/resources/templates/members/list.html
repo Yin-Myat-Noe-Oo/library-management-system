@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Members')}"></head>
+<body>
+<header th:replace="~{fragments :: nav('members')}"></header>
+<main>
+    <div class="page-head">
+        <div>
+            <div class="eyebrow">The membership</div>
+            <h1>Members</h1>
+            <p class="muted" th:text="${members.size()} + ' registered readers'"></p>
+        </div>
+        <a class="btn primary" th:href="@{/members/new}">+ Register member</a>
+    </div>
+    <div th:replace="~{fragments :: flash}"></div>
+
+    <div class="empty" th:if="${members.isEmpty()}">No members yet.</div>
+    <div class="member-grid">
+        <a class="card member-card" th:each="m : ${members}" th:href="@{/members/{id}(id=${m.id})}">
+            <div class="avatar sm" th:text="${#strings.substring(m.name, 0, 1)}">A</div>
+            <div style="min-width:0">
+                <strong th:text="${m.name}"></strong>
+                <div class="muted small" th:text="${m.email}"></div>
+                <div class="small" style="margin-top:6px">
+                    <span class="badge" th:classappend="${m.active} ? 'active' : 'returned'"
+                          th:text="${m.active} ? 'Active' : 'Inactive'"></span>
+                    <span class="muted" th:text="' · since ' + ${#temporals.format(m.memberSince, 'MMM yyyy')}"></span>
+                </div>
+            </div>
+        </a>
+    </div>
+</main>
+<footer th:replace="~{fragments :: footer}"></footer>
+</body>
+</html>

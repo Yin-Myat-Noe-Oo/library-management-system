@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Loans')}"></head>
+<body>
+<header th:replace="~{fragments :: nav('loans')}"></header>
+<main>
+    <div class="page-head">
+        <div>
+            <div class="eyebrow">Circulation desk</div>
+            <h1>Loans</h1>
+        </div>
+    </div>
+    <div th:replace="~{fragments :: flash}"></div>
+
+    <form class="card gold" style="margin-bottom:28px" th:action="@{/loans/borrow}" method="post">
+        <h3>Issue a book</h3>
+        <div class="grid3">
+            <label>Book
+                <select name="bookId" required>
+                    <option value="">Choose a book…</option>
+                    <option th:each="b : ${books}" th:value="${b.id}" th:disabled="${!b.available}"
+                            th:text="${b.title} + ' — ' + ${b.author} + ' (' + ${b.availableCopies} + ' available)'"></option>
+                </select>
+            </label>
+            <label>Member
+                <select name="memberId" required>
+                    <option value="">Choose a member…</option>
+                    <option th:each="m : ${members}" th:value="${m.id}" th:text="${m.name}"></option>
+                </select>
+            </label>
+            <button class="btn primary" type="submit">Issue book</button>
+        </div>
+    </form>
+
+    <nav class="chips">
+        <a th:href="@{/loans}" th:classappend="${status == null} ? 'active'">All</a>
+        <a th:each="s : ${statuses}" th:href="@{/loans(status=${s})}"
+           th:classappend="${status == s} ? 'active'" th:text="${#strings.capitalize(#strings.toLowerCase(s))}"></a>
+    </nav>
+
+    <div class="empty" th:if="${loans.isEmpty()}">No loans to show.</div>
+    <div class="table-wrap" th:unless="${loans.isEmpty()}">
+        <table>
+            <thead><tr><th>#</th><th>Book</th><th>Member</th><th>Borrowed</th><th>Due</th><th>Fine</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+            <tr th:each="loan : ${loans}">
+                <td class="muted mono" th:text="${loan.id}"></td>
+                <td><a class="title-cell" th:href="@{/books/{id}(id=${loan.book.id})}" th:text="${loan.book.title}"></a></td>
+                <td><a th:href="@{/members/{id}(id=${loan.member.id})}" th:text="${loan.member.name}"></a></td>
+                <td th:text="${#temporals.format(loan.borrowDate, 'd MMM yyyy')}"></td>
+                <td th:text="${#temporals.format(loan.dueDate, 'd MMM yyyy')}"></td>
+                <td th:text="'$' + ${loan.fine}"></td>
+                <td><span th:replace="~{fragments :: status(${loan})}"></span></td>
+                <td class="btn-row" style="flex-wrap:nowrap">
+                    <form th:unless="${loan.returned}" th:action="@{/loans/{id}/return(id=${loan.id})}" method="post">
+                        <button class="btn small primary" type="submit">Return</button>
+                    </form>
+                    <a class="btn small" th:href="@{/loans/{id}(id=${loan.id})}">Details</a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+<footer th:replace="~{fragments :: footer}"></footer>
+</body>
+</html>

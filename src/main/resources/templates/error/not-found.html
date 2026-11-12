@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Not found')}"></head>
+<body>
+<header th:replace="~{fragments :: nav('')}"></header>
+<main class="narrow" style="text-align:center; padding-top:80px">
+    <div class="eyebrow">404</div>
+    <h1>This volume is missing from the shelves</h1>
+    <p class="muted" th:text="${message}">The record does not exist.</p>
+    <a class="btn primary" th:href="@{/}">Return to the dashboard</a>
+</main>
+</body>
+</html>

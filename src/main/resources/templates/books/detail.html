@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head(${book.title})}"></head>
+<body>
+<header th:replace="~{fragments :: nav('books')}"></header>
+<main>
+    <div class="breadcrumb"><a th:href="@{/books}">Collection</a> / <span th:text="${book.title}"></span></div>
+    <div th:replace="~{fragments :: flash}"></div>
+
+    <section class="detail">
+        <div th:replace="~{fragments :: cover(${book}, 'lg')}"></div>
+
+        <div>
+            <a class="badge genre" th:if="${book.genre}" th:href="@{/books(genre=${book.genre})}" th:text="${book.genre}"></a>
+            <h1 style="margin-top:14px" th:text="${book.title}">Title</h1>
+            <p class="byline" th:text="'by ' + ${book.author}">by Author</p>
+            <p class="lead" th:text="${book.description} ?: 'No description has been written for this title yet.'"></p>
+
+            <dl class="facts">
+                <div><dt>Published</dt><dd th:text="${book.publishedYear} ?: '—'"></dd></div>
+                <div><dt>ISBN</dt><dd class="mono" th:text="${book.isbn}"></dd></div>
+                <div><dt>Copies</dt><dd th:text="${book.totalCopies}"></dd></div>
+                <div>
+                    <dt>On the shelf</dt>
+                    <dd th:text="${book.availableCopies}" th:classappend="${book.available} ? '' : 'danger'"></dd>
+                    <div class="meter"><i th:style="'width:' + ${book.availableCopies * 100 / book.totalCopies} + '%'"></i></div>
+                </div>
+            </dl>
+
+            <form class="card gold" th:action="@{/loans/borrow}" method="post" th:if="${book.available}">
+                <h3>Issue this book</h3>
+                <input type="hidden" name="bookId" th:value="${book.id}">
+                <input type="hidden" name="back" th:value="'/books/' + ${book.id}">
+                <div class="grid3" style="grid-template-columns: 1fr auto">
+                    <label style="margin:0">Member
+                        <select name="memberId" required>
+                            <option value="">Choose a member…</option>
+                            <option th:each="m : ${members}" th:value="${m.id}" th:text="${m.name}"></option>
+                        </select>
+                    </label>
+                    <button class="btn primary" type="submit" style="margin:0">Issue book</button>
+                </div>
+            </form>
+            <div class="alert error" th:unless="${book.available}">All copies are currently on loan.</div>
+
+            <div class="btn-row" style="margin-top:20px">
+                <a class="btn" th:href="@{/books/{id}/edit(id=${book.id})}">Edit details</a>
+                <form th:action="@{/books/{id}/delete(id=${book.id})}" method="post"
+                      onsubmit="return confirm('Remove this book from the collection?')">
+                    <button class="btn ghost-danger" type="submit">Remove</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <h2>Lending history</h2>
+    <div class="empty" th:if="${loans.isEmpty()}">This volume has never been borrowed.</div>
+    <div class="table-wrap" th:unless="${loans.isEmpty()}">
+        <table>
+            <thead><tr><th>Member</th><th>Borrowed</th><th>Due</th><th>Returned</th><th>Fine</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+            <tr th:each="loan : ${loans}">
+                <td><a th:href="@{/members/{id}(id=${loan.member.id})}" th:text="${loan.member.name}"></a></td>
+                <td th:text="${#temporals.format(loan.borrowDate, 'd MMM yyyy')}"></td>
+                <td th:text="${#temporals.format(loan.dueDate, 'd MMM yyyy')}"></td>
+                <td th:text="${loan.returnDate} ? ${#temporals.format(loan.returnDate, 'd MMM yyyy')} : '—'"></td>
+                <td th:text="'$' + ${loan.fine}"></td>
+                <td><span th:replace="~{fragments :: status(${loan})}"></span></td>
+                <td><a class="btn small" th:href="@{/loans/{id}(id=${loan.id})}">Details</a></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <th:block th:unless="${related.isEmpty()}">
+        <h2 th:text="'More in ' + ${book.genre}">More</h2>
+        <div class="book-grid">
+            <a class="book-tile" th:each="b : ${related}" th:href="@{/books/{id}(id=${b.id})}">
+                <div th:replace="~{fragments :: cover(${b}, '')}"></div>
+                <div class="meta"><strong th:text="${b.title}"></strong><span th:text="${b.author}"></span></div>
+            </a>
+        </div>
+    </th:block>
+</main>
+<footer th:replace="~{fragments :: footer}"></footer>
+</body>
+</html>

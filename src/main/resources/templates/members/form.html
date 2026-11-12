@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head(${member.id} ? 'Edit member' : 'Register member')}"></head>
+<body>
+<header th:replace="~{fragments :: nav('members')}"></header>
+<main class="narrow">
+    <div class="breadcrumb">
+        <a th:href="@{/members}">Members</a> /
+        <a th:if="${member.id}" th:href="@{/members/{id}(id=${member.id})}" th:text="${member.name}"></a>
+        <span th:unless="${member.id}">New member</span>
+    </div>
+    <div class="eyebrow" th:text="${member.id} ? 'Edit membership' : 'New membership'"></div>
+    <h1 style="margin-bottom:24px" th:text="${member.id} ? 'Edit member' : 'Register a member'">Register a member</h1>
+
+    <form th:action="@{/members/save}" th:object="${member}" method="post" class="card gold">
+        <div class="alert error" th:if="${#fields.hasGlobalErrors()}" th:each="err : ${#fields.globalErrors()}" th:text="${err}"></div>
+        <input type="hidden" th:field="*{id}">
+        <input type="hidden" th:field="*{memberSince}">
+
+        <label>Full name
+            <input type="text" th:field="*{name}" required>
+            <small class="err" th:errors="*{name}"></small>
+        </label>
+        <div class="grid2">
+            <label>Email
+                <input type="email" th:field="*{email}" required>
+                <small class="err" th:errors="*{email}"></small>
+            </label>
+            <label>Phone
+                <input type="text" th:field="*{phone}">
+            </label>
+        </div>
+        <label class="check">
+            <input type="checkbox" th:field="*{active}"> Active membership
+        </label>
+
+        <div class="form-actions">
+            <button class="btn primary" type="submit">Save</button>
+            <a class="btn" th:href="${member.id} ? @{/members/{id}(id=${member.id})} : @{/members}">Cancel</a>
+        </div>
+    </form>
+</main>
+<footer th:replace="~{fragments :: footer}"></footer>
+</body>
+</html>

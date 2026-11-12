@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head(${book.id} ? 'Edit book' : 'Add book')}"></head>
+<body>
+<header th:replace="~{fragments :: nav('books')}"></header>
+<main class="narrow">
+    <div class="breadcrumb">
+        <a th:href="@{/books}">Collection</a> /
+        <a th:if="${book.id}" th:href="@{/books/{id}(id=${book.id})}" th:text="${book.title}"></a>
+        <span th:unless="${book.id}">New acquisition</span>
+    </div>
+    <div class="eyebrow" th:text="${book.id} ? 'Edit volume' : 'New acquisition'"></div>
+    <h1 style="margin-bottom:24px" th:text="${book.id} ? 'Edit book' : 'Add a book'">Add a book</h1>
+
+    <form th:action="@{/books/save}" th:object="${book}" method="post" class="card gold">
+        <div class="alert error" th:if="${#fields.hasGlobalErrors()}" th:each="err : ${#fields.globalErrors()}" th:text="${err}"></div>
+        <input type="hidden" th:field="*{id}">
+
+        <label>Title
+            <input type="text" th:field="*{title}" required>
+            <small class="err" th:errors="*{title}"></small>
+        </label>
+        <label>Author
+            <input type="text" th:field="*{author}" required>
+            <small class="err" th:errors="*{author}"></small>
+        </label>
+        <div class="grid2">
+            <label>ISBN
+                <input type="text" th:field="*{isbn}" required>
+                <small class="err" th:errors="*{isbn}"></small>
+            </label>
+            <label>Genre
+                <input type="text" th:field="*{genre}">
+            </label>
+        </div>
+        <div class="grid2">
+            <label>Published year
+                <input type="number" th:field="*{publishedYear}">
+                <small class="err" th:errors="*{publishedYear}"></small>
+            </label>
+            <label>Total copies
+                <input type="number" min="1" th:field="*{totalCopies}" required>
+                <small class="err" th:errors="*{totalCopies}"></small>
+            </label>
+        </div>
+        <label>Description
+            <textarea th:field="*{description}" maxlength="1000"></textarea>
+            <small class="err" th:errors="*{description}"></small>
+        </label>
+
+        <div class="form-actions">
+            <button class="btn primary" type="submit">Save</button>
+            <a class="btn" th:href="${book.id} ? @{/books/{id}(id=${book.id})} : @{/books}">Cancel</a>
+        </div>
+    </form>
+</main>
+<footer th:replace="~{fragments :: footer}"></footer>
+</body>
+</html>
